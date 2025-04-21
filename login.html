@@ -1,0 +1,197 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessDrills - Login</title>
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      max-width: 400px;
+      padding: 30px;
+      background-color: #2a2a2a;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      color: #fff;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      background-color: #3a3a3a;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #1e90ff;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e90ff, #00b7eb);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      margin: 5px;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #1c86ee, #00a3d6);
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .feedback {
+      font-size: 16px;
+      margin-top: 10px;
+      min-height: 24px;
+      color: #ffeb3b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ChessDrills - Login</h1>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter username" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter password" required>
+    </div>
+    <button id="loginButton">Login</button>
+    <button id="registerButton">Register</button>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <script>
+    const feedback = document.getElementById('feedback');
+    const loginButton = document.getElementById('loginButton');
+    const registerButton = document.getElementById('registerButton');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+
+    // Check if user is already logged in
+    if (localStorage.getItem('loggedIn') === 'true') {
+      window.location.href = 'index.html';
+    }
+
+    loginButton.addEventListener('click', () => {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!username || !password) {
+        feedback.textContent = 'Please enter both username and password.';
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      if (users[username] && users[username] === password) {
+        localStorage.setItem('loggedIn', 'true');
+        localStorage.setItem('currentUser', username);
+        feedback.textContent = 'Login successful! Redirecting...';
+        feedback.style.color = 'green';
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+      } else {
+        feedback.textContent = 'Invalid username or password.';
+        feedback.style.color = 'red';
+      }
+    });
+
+    registerButton.addEventListener('click', () => {
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!username || !password) {
+        feedback.textContent = 'Please enter both username and password.';
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('users')) || {};
+      if (users[username]) {
+        feedback.textContent = 'Username already exists.';
+        feedback.style.color = 'red';
+      } else {
+        users[username] = password;
+        localStorage.setItem('users', JSON.stringify(users));
+        feedback.textContent = 'Registration successful! You can now log in.';
+        feedback.style.color = 'green';
+        usernameInput.value = '';
+        passwordInput.value = '';
+      }
+    });
+  </script>
+</body>
+</html>

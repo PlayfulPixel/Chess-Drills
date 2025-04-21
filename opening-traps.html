@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessDrills - Opening Traps</title>
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    nav {
+      width: 100%;
+      background-color: #2a2a2a;
+      padding: 10px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .nav-tabs {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    .nav-tabs a, .nav-tabs button {
+      padding: 10px 20px;
+      color: #e0e0e0;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+    .nav-tabs a:hover, .nav-tabs button:hover {
+      background-color: #3a3a3a;
+    }
+    .nav-tabs a.active {
+      background-color: #1e90ff;
+      color: #fff;
+    }
+    .welcome-message {
+      max-width: 720px;
+      margin: 10px auto;
+      font-size: 16px;
+      color: #b0b0b0;
+    }
+    .container {
+      text-align: center;
+      max-width: 720px;
+      padding: 30px;
+      background-color: #2a2a2a;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      margin: 20px;
+    }
+    h1 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+    .trap-menu {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    .trap-menu select {
+      padding: 8px 12px;
+      font-size: 16px;
+      background-color: #3a3a3a;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      border-radius: 4px;
+    }
+    .trap-menu select:focus {
+      outline: none;
+      border-color: #1e90ff;
+    }
+    .trap-menu button {
+      padding: 8px 16px;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e90ff, #00b7eb);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .trap-menu button:hover {
+      background: linear-gradient(135deg, #1c86ee, #00a3d6);
+      transform: translateY(-2px);
+    }
+    .trap-menu button:active {
+      transform: translateY(0);
+    }
+    .puzzle-info {
+      font-size: 18px;
+      color: #b0b0b0;
+      margin-bottom: 20px;
+    }
+    .chessboard {
+      width: 640px;
+      height: 640px;
+      border: 2px solid #444;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      margin: 0 auto 20px;
+    }
+    .square {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .light {
+      background-color: #d4c7a1;
+    }
+    .dark {
+      background-color: #8b6f47;
+    }
+    .label {
+      position: absolute;
+      font-size: 16px;
+      color: #e0e0e0;
+    }
+    .row-label {
+      left: -30px;
+    }
+    .col-label {
+      bottom: -30px;
+    }
+    .board-wrapper {
+      position: relative;
+      width: 640px;
+      margin: 0 auto;
+    }
+    .piece {
+      width: 67px;
+      height: 67px;
+      user-select: none;
+    }
+    .highlight {
+      background-color: rgba(0, 255, 0, 0.3);
+    }
+    .feedback {
+      font-size: 16px;
+      margin-bottom: 20px;
+      min-height: 24px;
+    }
+    .feedback.hint {
+      color: #ffeb3b; /* Yellow for hints */
+    }
+    .game-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e90ff, #00b7eb);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #1c86ee, #00a3d6);
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    #skipPuzzle, #hintButton {
+      margin-left: 0;
+    }
+    .board-wrapper, .feedback, .game-controls {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-tabs">
+      <a href="index.html">Puzzles</a>
+      <a href="#" class="active">Opening Traps</a>
+      <a href="about.html">About</a>
+      <button id="logoutButton" style="display: none;">Logout</button>
+      <a href="login.html" id="loginLink">Login</a>
+    </div>
+  </nav>
+  <div class="welcome-message" id="welcomeMessage"></div>
+  <div class="container">
+    <h1>Chess Opening Traps</h1>
+    <div class="trap-menu">
+      <select id="trapSelect">
+        <option value="" disabled selected>Select a Trap</option>
+        <option value="0">Scholar's Mate</option>
+        <option value="1">Jobava London Trap</option>
+        <option value="2">Fried Liver Attack</option>
+        <option value="3">ICBM Gambit</option>
+      </select>
+      <button id="startTrap">Start Trap</button>
+      <button id="randomTrap">Random Trap</button>
+    </div>
+    <div class="puzzle-info" id="puzzleInfo"></div>
+    <div class="board-wrapper" id="boardWrapper">
+      <div class="chessboard" id="chessboard"></div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="game-controls">
+      <button id="nextPuzzle">Next Trap</button>
+      <button id="skipPuzzle">Skip Trap</button>
+      <button id="hintButton">Hint</button>
+    </div>
+  </div>
+
+  <!-- Include chess.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script>
+    // Check if user is logged in
+    if (localStorage.getItem('loggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    } else {
+      document.getElementById('logoutButton').style.display = 'block';
+      document.getElementById('loginLink').style.display = 'none';
+      const username = localStorage.getItem('currentUser') || 'User';
+      document.getElementById('welcomeMessage').textContent = `Welcome, ${username}!`;
+    }
+
+    // Logout functionality
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      localStorage.removeItem('loggedIn');
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    });
+
+    const pieces = {
+      'P': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wp.png',
+      'R': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wr.png',
+      'N': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wn.png',
+      'B': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wb.png',
+      'Q': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wq.png',
+      'K': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wk.png',
+      'p': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bp.png',
+      'r': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/br.png',
+      'n': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bn.png',
+      'b': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bb.png',
+      'q': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bq.png',
+      'k': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bk.png'
+    };
+
+    const traps = [
+      {
+        fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2',
+        correctMoves: ['d1h5', 'f1c4', 'h5f7'],
+        opponentMoves: ['b8c6', 'g8f6'],
+        description: 'Set up Scholar\'s Mate',
+        hints: [
+          'Qh5: Attacks the e5 pawn and threatens checkmate on f7.',
+          'Bc4: Targets the f7 square, setting up the checkmate.',
+          'Qxf7#: Delivers checkmate on f7, as the king cannot escape.'
+        ]
+      },
+      {
+        fen: 'rnbqkb1r/ppp2ppp/4pn2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR w KQkq - 0 4',
+        correctMoves: ['c3b5', 'b5c7', 'c7a8'],
+        opponentMoves: ['b8c6', 'e8d7'],
+        description: 'Jobava London Trap',
+        hints: [
+          'Nxb5: Forks the king and queen, forcing the king to move.',
+          'Nxc7: Attacks the rook on a8 while the king moves to d7.',
+          'Nxa8: Captures the rook, winning material.'
+        ]
+      },
+      {
+        fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3',
+        correctMoves: ['f1c4', 'f3g5', 'e4d5', 'g5f7', 'd1f3', 'f3d5', 'c4d5', 'd5e6'],
+        opponentMoves: ['g8f6', 'd7d5', 'f6d5', 'e8f7', 'f7g8', 'd8d5', 'c8e6'],
+        description: 'Fried Liver Attack',
+        hints: [
+          'Bc4: Controls the center and prepares to attack f7.',
+          'Ng5: Targets the f7 pawn, which is only defended by the king.',
+          'exd5: Captures the pawn, opening the center.',
+          'Nxf7: Captures the f7 pawn, forcing the king to take.',
+          'Qf3: Pins the knight on d5, threatening to capture it.',
+          'Qxd5: Captures the knight, attacking the queen on d8.',
+          'Bxd5: Captures the queen, winning material.',
+          'Bxe6: Captures the bishop, maintaining the attack.'
+        ]
+      },
+      {
+        fen: 'rnbqkbnr/ppp1pppp/8/3p4/8/5N2/PPPPPPPP/RNBQKB1R w KQkq d6 0 2',
+        correctMoves: ['e2e4', 'f3g5', 'd2d3', 'f1d3', 'g5f7', 'd3g6', 'd1d8'],
+        opponentMoves: ['d5e4', 'g8f6', 'e4d3', 'h7h6', 'e8f7', 'f7g6'],
+        description: 'ICBM Gambit',
+        hints: [
+          'e4: Attacks the d4 pawn.',
+          'Ng5: Moves your knight out of danger while attacking the pawn.',
+          'd3: You continue attacking the pawn.',
+          'Bd3: You recapture the pawn with your bishop.',
+          'Nxf7: Sacrifices your knight trying to win the queen.',
+          'Bg6: Sacrifice your bishop and winning the queen is unstoppable now.',
+          'Qxd8: You capture their queen and your queen cannot be taken back.'
+        ]
+      }
+    ];
+
+    let currentTrapIndex = -1;
+    let lastTrapIndex = -1;
+    let moveCount = 0;
+    const chess = new Chess();
+    const board = document.getElementById('chessboard');
+    const puzzleInfo = document.getElementById('puzzleInfo');
+    const feedback = document.getElementById('feedback');
+    const nextPuzzleButton = document.getElementById('nextPuzzle');
+    const skipPuzzleButton = document.getElementById('skipPuzzle');
+    const hintButton = document.getElementById('hintButton');
+    const trapSelect = document.getElementById('trapSelect');
+    const startTrapButton = document.getElementById('startTrap');
+    const randomTrapButton = document.getElementById('randomTrap');
+    const boardWrapper = document.getElementById('boardWrapper');
+    const gameControls = document.querySelector('.game-controls');
+    let draggedPiece = null;
+
+    function getRandomTrapIndex() {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * traps.length);
+      } while (newIndex === lastTrapIndex && traps.length > 1);
+      return newIndex;
+    }
+
+    function loadTrap(index) {
+      currentTrapIndex = index;
+      const trap = traps[index];
+      chess.load(trap.fen);
+      puzzleInfo.textContent = trap.description;
+      feedback.textContent = '';
+      moveCount = 0;
+      lastTrapIndex = index;
+      updateBoard();
+
+      boardWrapper.style.display = 'block';
+      feedback.style.display = 'block';
+      gameControls.style.display = 'flex';
+      puzzleInfo.style.display = 'block';
+    }
+
+    function updateBoard() {
+      board.innerHTML = '';
+      const position = chess.board();
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement('div');
+          square.className = 'square';
+          square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          const piece = position[row][col];
+          if (piece) {
+            const pieceCode = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+            square.innerHTML = `<img class="piece" src="${pieces[pieceCode]}" alt="${pieceCode}" draggable="true" onerror="this.outerHTML='<span class=piece>${pieceCode}</span>'">`;
+          }
+
+          square.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('piece')) {
+              draggedPiece = e.target;
+              e.dataTransfer.setData('text/plain', '');
+            }
+          });
+
+          square.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            square.classList.add('highlight');
+          });
+
+          square.addEventListener('dragleave', () => {
+            square.classList.remove('highlight');
+          });
+
+          square.addEventListener('drop', (e) => {
+            e.preventDefault();
+            square.classList.remove('highlight');
+            if (draggedPiece && draggedPiece !== square) {
+              const fromRow = parseInt(draggedPiece.parentElement.dataset.row);
+              const fromCol = parseInt(draggedPiece.parentElement.dataset.col);
+              const toRow = parseInt(square.dataset.row);
+              const toCol = parseInt(square.dataset.col);
+              const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+              const from = `${letters[fromCol]}${8 - fromRow}`;
+              const to = `${letters[toCol]}${8 - toRow}`;
+
+              const move = chess.move({ from, to, promotion: 'q' });
+              if (move) {
+                const trap = traps[currentTrapIndex];
+                const attemptedMove = `${from}${to}`;
+                
+                if (attemptedMove === trap.correctMoves[moveCount]) {
+                  moveCount++;
+                  if (moveCount === trap.correctMoves.length) {
+                    feedback.textContent = 'Correct!';
+                    feedback.style.color = 'green';
+                    feedback.classList.remove('hint');
+                    nextPuzzleButton.disabled = false;
+                    updateBoard();
+                  } else {
+                    feedback.textContent = `Move ${moveCount} correct! ${moveCount === trap.correctMoves.length - 1 ? 'Deliver the trap!' : 'Next move!'}`;
+                    feedback.style.color = 'green';
+                    feedback.classList.remove('hint');
+                    const opponentMove = trap.opponentMoves[moveCount - 1];
+                    chess.move({ from: opponentMove.slice(0, 2), to: opponentMove.slice(2), promotion: 'q' });
+                    updateBoard();
+                  }
+                } else {
+                  feedback.textContent = `Incorrect move ${moveCount + 1}. Try again!`;
+                  feedback.style.color = 'red';
+                  feedback.classList.remove('hint');
+                  chess.undo();
+                  updateBoard();
+                }
+              } else {
+                feedback.textContent = 'Illegal move. Try again!';
+                feedback.style.color = 'red';
+                feedback.classList.remove('hint');
+              }
+              draggedPiece = null;
+            }
+          });
+
+          board.appendChild(square);
+        }
+      }
+
+      for (let i = 0; i < 8; i++) {
+        const label = document.createElement('div');
+        label.className = 'label row-label';
+        label.style.top = `${i * 80 + 32}px`;
+        label.textContent = 8 - i;
+        board.parentElement.appendChild(label);
+      }
+
+      const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+      for (let i = 0; i < 8; i++) {
+        const label = document.createElement('div');
+        label.className = 'label col-label';
+        label.style.left = `${i * 80 + 32}px`;
+        label.textContent = letters[i];
+        board.parentElement.appendChild(label);
+      }
+    }
+
+    function getMoveNotation(move) {
+      const piece = chess.get(move.slice(0, 2));
+      if (!piece) return move;
+      const pieceSymbol = piece.type === 'p' ? '' : piece.type.toUpperCase();
+      const to = move.slice(2);
+      return `${pieceSymbol}${to}`;
+    }
+
+    startTrapButton.addEventListener('click', () => {
+      const selectedIndex = parseInt(trapSelect.value);
+      if (!isNaN(selectedIndex)) {
+        loadTrap(selectedIndex);
+      } else {
+        alert('Please select a trap to start!');
+      }
+    });
+
+    randomTrapButton.addEventListener('click', () => {
+      const randomIndex = getRandomTrapIndex();
+      loadTrap(randomIndex);
+    });
+
+    nextPuzzleButton.addEventListener('click', () => {
+      currentTrapIndex = getRandomTrapIndex();
+      loadTrap(currentTrapIndex);
+      nextPuzzleButton.disabled = true;
+    });
+
+    skipPuzzleButton.addEventListener('click', () => {
+      currentTrapIndex = getRandomTrapIndex();
+      loadTrap(currentTrapIndex);
+      nextPuzzleButton.disabled = true;
+    });
+
+    hintButton.addEventListener('click', () => {
+      if (moveCount < traps[currentTrapIndex].correctMoves.length) {
+        const nextMove = traps[currentTrapIndex].correctMoves[moveCount];
+        const hintText = traps[currentTrapIndex].hints[moveCount];
+        const moveNotation = getMoveNotation(nextMove);
+        feedback.textContent = `Hint: ${moveNotation} - ${hintText}`;
+        feedback.style.color = '#ffeb3b';
+        feedback.classList.add('hint');
+      } else {
+        feedback.textContent = 'No more hints available!';
+        feedback.style.color = '#ffeb3b';
+        feedback.classList.add('hint');
+      }
+    });
+
+    puzzleInfo.style.display = 'none';
+  </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessDrills - Puzzles</title>
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    nav {
+      width: 100%;
+      background-color: #2a2a2a;
+      padding: 10px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .nav-tabs {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    .nav-tabs a, .nav-tabs button {
+      padding: 10px 20px;
+      color: #e0e0e0;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+    .nav-tabs a:hover, .nav-tabs button:hover {
+      background-color: #3a3a3a;
+    }
+    .nav-tabs a.active {
+      background-color: #1e90ff;
+      color: #fff;
+    }
+    .welcome-message {
+      max-width: 720px;
+      margin: 10px auto;
+      font-size: 16px;
+      color: #b0b0b0;
+    }
+    .container {
+      text-align: center;
+      max-width: 720px;
+      padding: 30px;
+      background-color: #2a2a2a;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      margin: 20px;
+    }
+    h1 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+    .puzzle-info {
+      font-size: 18px;
+      color: #b0b0b0;
+      margin-bottom: 20px;
+    }
+    .chessboard {
+      width: 640px;
+      height: 640px;
+      border: 2px solid #444;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      margin: 0 auto 20px;
+    }
+    .square {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .light {
+      background-color: #d4c7a1;
+    }
+    .dark {
+      background-color: #8b6f47;
+    }
+    .label {
+      position: absolute;
+      font-size: 16px;
+      color: #e0e0e0;
+    }
+    .row-label {
+      left: -30px;
+    }
+    .col-label {
+      bottom: -30px;
+    }
+    .board-wrapper {
+      position: relative;
+      width: 640px;
+      margin: 0 auto;
+    }
+    .piece {
+      width: 67px;
+      height: 67px;
+      user-select: none;
+    }
+    .highlight {
+      background-color: rgba(0, 255, 0, 0.3);
+    }
+    .feedback {
+      font-size: 16px;
+      margin-bottom: 20px;
+      min-height: 24px;
+    }
+    .feedback.hint {
+      color: #ffeb3b; /* Yellow for hints */
+    }
+    .game-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #1e90ff, #00b7eb);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #1c86ee, #00a3d6);
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    #skipPuzzle, #hintButton {
+      margin-left: 0;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="nav-tabs" id="navTabs">
+      <a href="#" class="active">Puzzles</a>
+      <a href="opening-traps.html">Opening Traps</a>
+      <a href="about.html">About</a>
+      <button id="logoutButton" style="display: none;">Logout</button>
+      <a href="login.html" id="loginLink">Login</a>
+    </div>
+  </nav>
+  <div class="welcome-message" id="welcomeMessage"></div>
+  <div class="container">
+    <h1>Chess Puzzles</h1>
+    <div class="puzzle-info" id="puzzleInfo"></div>
+    <div class="board-wrapper">
+      <div class="chessboard" id="chessboard"></div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="game-controls">
+      <button id="nextPuzzle">Next Puzzle</button>
+      <button id="skipPuzzle">Skip Puzzle</button>
+      <button id="hintButton">Hint</button>
+    </div>
+  </div>
+
+  <!-- Include chess.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script>
+    // Check if user is logged in
+    if (localStorage.getItem('loggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    } else {
+      document.getElementById('logoutButton').style.display = 'block';
+      document.getElementById('loginLink').style.display = 'none';
+      const username = localStorage.getItem('currentUser') || 'User';
+      document.getElementById('welcomeMessage').textContent = `Welcome, ${username}!`;
+    }
+
+    // Logout functionality
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      localStorage.removeItem('loggedIn');
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    });
+
+    const pieces = {
+      'P': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wp.png',
+      'R': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wr.png',
+      'N': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wn.png',
+      'B': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wb.png',
+      'Q': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wq.png',
+      'K': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/wk.png',
+      'p': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bp.png',
+      'r': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/br.png',
+      'n': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bn.png',
+      'b': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bb.png',
+      'q': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bq.png',
+      'k': 'https://images.chesscomfiles.com/chess-themes/pieces/alpha/150/bk.png'
+    };
+
+    const puzzles = [
+      {
+        fen: '7k/8/5Q2/8/8/8/6K1/8 w - - 0 1',
+        correctMoves: ['f6h6'],
+        opponentMoves: [],
+        description: 'Find Mate in 1',
+        hints: [
+          'Qh6#: Delivers checkmate, as the king cannot move.'
+        ]
+      },
+      {
+        fen: 'r1bqkb1r/ppp2ppp/2n1pn2/1N1p4/3P1B2/8/PPP1PPPP/R2QKBNR w KQkq - 2 5',
+        correctMoves: ['b5c7'],
+        opponentMoves: [],
+        description: 'Find the Fork',
+        hints: [
+          'Nxc7: Forks the king on e8 and rook on a8, winning material.'
+        ]
+      },
+      {
+        fen: '6kb/p1pppppp/2p5/3P4/P3P1B1/3P1N2/P1P2PPP/1R4K1 w - - 0 1',
+        correctMoves: ['b1b8'],
+        opponentMoves: [],
+        description: 'Find Mate in 1',
+        hints: [
+          'Rb8#: Delivers checkmate, as the king cannot move.'
+        ]
+      },
+      {
+        fen: 'r1bqk1nr/pppp1ppp/2n5/3Pp3/1b6/2P5/PP2PPPP/RNBQKBNR w KQkq - 1 4',
+        correctMoves: ['c3b4'],
+        opponentMoves: [],
+        description: 'Find the Free Piece',
+        hints: [
+          'cxb4: Captures the unprotected bishop on b4.'
+        ]
+      },
+      {
+        fen: '8/8/7k/8/8/8/8/BB1B3K w - - 0 1',
+        correctMoves: ['h1g2', 'a1e5', 'e5f6'],
+        opponentMoves: ['h6g5', 'g5h4'],
+        description: 'Find Mate in 3',
+        hints: [
+          'Kg2: Moves the king to g2, forcing the black king to g5.',
+          'Be5: Places the black king in check, forcing it to h4.',
+          'Bf6#: Delivers checkmate, as the king cannot move.'
+        ]
+      },
+      {
+        fen: '3k4/7Q/8/8/8/8/8/2R1R2K w - - 0 1',
+        correctMoves: ['h7d3'],
+        opponentMoves: [],
+        description: 'Find Mate in 1',
+        hints: [
+          'Qd3#: Delivers checkmate, as the king cannot move.'
+        ]
+      },
+      {
+        fen: '8/8/8/6r1/8/6k1/8/5Q1K w - - 0 1',
+        correctMoves: ['f1f5'],
+        opponentMoves: ['g3h4'],
+        description: 'Skewer to Win Material',
+        hints: [
+          'Qf5: Skewer the king and rook, forcing the king to move.'
+        ]
+      },
+      {
+        fen: 'rnb1kb1r/ppppqppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 1 2',
+        correctMoves: ['f1b5'],
+        opponentMoves: [],
+        description: 'Pin to Win Material',
+        hints: [
+          'Bb5: Pin the knight to the queen, setting up a winning capture.'
+        ]
+      },
+      {
+        fen: 'r1bqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 1 2',
+        correctMoves: ['f3g5'],
+        opponentMoves: ['f6e4'],
+        description: 'Fork to Win Material',
+        hints: [
+          'Ng5: Threatens a fork on f7, targeting the bishop and rook.'
+        ]
+      },
+      {
+        fen: '8/8/8/8/8/6q1/5B2/5R1K w - - 0 1',
+        correctMoves: ['f2e3'],
+        opponentMoves: [],
+        description: 'Discovered Attack to Win Material',
+        hints: [
+          'Be3: Reveals the rook’s attack on the queen, winning material.'
+        ]
+      },
+      {
+        fen: '8/8/7k/8/8/5B2/8/5Q1K w - - 0 1',
+        correctMoves: ['f1f5'],
+        opponentMoves: [],
+        description: 'Find Mate in 1',
+        hints: [
+          'Qf5#: Delivers checkmate, as the king cannot move.'
+        ]
+      },
+      {
+        fen: '8/8/8/6r1/8/5N2/8/6K1 w - - 0 1',
+        correctMoves: ['f3e5'],
+        opponentMoves: ['e8f8'],
+        description: 'Fork to Win Material',
+        hints: [
+          'Ne5: Forks the king and rook, winning material.'
+        ]
+      }
+    ];
+
+    let currentPuzzleIndex = -1;
+    let lastPuzzleIndex = -1;
+    let moveCount = 0;
+    const chess = new Chess();
+    const board = document.getElementById('chessboard');
+    const puzzleInfo = document.getElementById('puzzleInfo');
+    const feedback = document.getElementById('feedback');
+    const nextPuzzleButton = document.getElementById('nextPuzzle');
+    const skipPuzzleButton = document.getElementById('skipPuzzle');
+    const hintButton = document.getElementById('hintButton');
+    let draggedPiece = null;
+
+    function getRandomPuzzleIndex() {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * puzzles.length);
+      } while (newIndex === lastPuzzleIndex && puzzles.length > 1);
+      return newIndex;
+    }
+
+    function loadPuzzle(index) {
+      currentPuzzleIndex = index;
+      const puzzle = puzzles[index];
+      chess.load(puzzle.fen);
+      puzzleInfo.textContent = puzzle.description;
+      feedback.textContent = '';
+      moveCount = 0;
+      lastPuzzleIndex = index;
+      updateBoard();
+    }
+
+    function updateBoard() {
+      board.innerHTML = '';
+      const position = chess.board();
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement('div');
+          square.className = 'square';
+          square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          const piece = position[row][col];
+          if (piece) {
+            const pieceCode = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+            square.innerHTML = `<img class="piece" src="${pieces[pieceCode]}" alt="${pieceCode}" draggable="true" onerror="this.outerHTML='<span class=piece>${pieceCode}</span>'">`;
+          }
+
+          square.addEventListener('dragstart', (e) => {
+            if (e.target.classList.contains('piece')) {
+              draggedPiece = e.target;
+              e.dataTransfer.setData('text/plain', '');
+            }
+          });
+
+          square.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            square.classList.add('highlight');
+          });
+
+          square.addEventListener('dragleave', () => {
+            square.classList.remove('highlight');
+          });
+
+          square.addEventListener('drop', (e) => {
+            e.preventDefault();
+            square.classList.remove('highlight');
+            if (draggedPiece && draggedPiece !== square) {
+              const fromRow = parseInt(draggedPiece.parentElement.dataset.row);
+              const fromCol = parseInt(draggedPiece.parentElement.dataset.col);
+              const toRow = parseInt(square.dataset.row);
+              const toCol = parseInt(square.dataset.col);
+              const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+              const from = `${letters[fromCol]}${8 - fromRow}`;
+              const to = `${letters[toCol]}${8 - toRow}`;
+
+              const move = chess.move({ from, to, promotion: 'q' });
+              if (move) {
+                const puzzle = puzzles[currentPuzzleIndex];
+                const attemptedMove = `${from}${to}`;
+                
+                if (attemptedMove === puzzle.correctMoves[moveCount]) {
+                  moveCount++;
+                  if (moveCount === puzzle.correctMoves.length) {
+                    feedback.textContent = 'Correct!';
+                    feedback.style.color = 'green';
+                    feedback.classList.remove('hint');
+                    nextPuzzleButton.disabled = false;
+                    updateBoard();
+                  } else {
+                    feedback.textContent = `Move ${moveCount} correct! ${moveCount === puzzle.correctMoves.length - 1 ? 'Last move!' : 'Next move!'}`;
+                    feedback.style.color = 'green';
+                    feedback.classList.remove('hint');
+                    const opponentMove = puzzle.opponentMoves[moveCount - 1];
+                    chess.move({ from: opponentMove.slice(0, 2), to: opponentMove.slice(2), promotion: 'q' });
+                    updateBoard();
+                  }
+                } else {
+                  feedback.textContent = `Incorrect move ${moveCount + 1}. Try again!`;
+                  feedback.style.color = 'red';
+                  feedback.classList.remove('hint');
+                  chess.undo();
+                  updateBoard();
+                }
+              } else {
+                feedback.textContent = 'Illegal move. Try again!';
+                feedback.style.color = 'red';
+                feedback.classList.remove('hint');
+              }
+              draggedPiece = null;
+            }
+          });
+
+          board.appendChild(square);
+        }
+      }
+
+      for (let i = 0; i < 8; i++) {
+        const label = document.createElement('div');
+        label.className = 'label row-label';
+        label.style.top = `${i * 80 + 32}px`;
+        label.textContent = 8 - i;
+        board.parentElement.appendChild(label);
+      }
+
+      const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+      for (let i = 0; i < 8; i++) {
+        const label = document.createElement('div');
+        label.className = 'label col-label';
+        label.style.left = `${i * 80 + 32}px`;
+        label.textContent = letters[i];
+        board.parentElement.appendChild(label);
+      }
+    }
+
+    function getMoveNotation(move) {
+      const piece = chess.get(move.slice(0, 2));
+      if (!piece) return move;
+      const pieceSymbol = piece.type === 'p' ? '' : piece.type.toUpperCase();
+      const to = move.slice(2);
+      return `${pieceSymbol}${to}`;
+    }
+
+    nextPuzzleButton.addEventListener('click', () => {
+      currentPuzzleIndex = getRandomPuzzleIndex();
+      loadPuzzle(currentPuzzleIndex);
+      nextPuzzleButton.disabled = true;
+    });
+
+    skipPuzzleButton.addEventListener('click', () => {
+      currentPuzzleIndex = getRandomPuzzleIndex();
+      loadPuzzle(currentPuzzleIndex);
+      nextPuzzleButton.disabled = true;
+    });
+
+    hintButton.addEventListener('click', () => {
+      if (moveCount < puzzles[currentPuzzleIndex].correctMoves.length) {
+        const nextMove = puzzles[currentPuzzleIndex].correctMoves[moveCount];
+        const hintText = puzzles[currentPuzzleIndex].hints[moveCount];
+        const moveNotation = getMoveNotation(nextMove);
+        feedback.textContent = `Hint: ${moveNotation} - ${hintText}`;
+        feedback.style.color = '#ffeb3b';
+        feedback.classList.add('hint');
+      } else {
+        feedback.textContent = 'No more hints available!';
+        feedback.style.color = '#ffeb3b';
+        feedback.classList.add('hint');
+      }
+    });
+
+    loadPuzzle(getRandomPuzzleIndex());
+  </script>
+</body>
+</html>
